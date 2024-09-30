@@ -13,7 +13,10 @@ const names = [];
 app.use(cors());
 app.use(bodyParser.text());
 
-var obj = JSON.parse(fs.readFileSync('names.json', 'utf8')).names;
+const obj = JSON.parse(fs.readFileSync('names.json', 'utf8'));
+const firstnames = obj.firstnames;
+const lastnames = obj.lastnames;
+
 
 function saveName(name) {
   names.push(name);
@@ -24,11 +27,15 @@ function isNameUsed(name) {
 }
 
 function pickRandomUserName() {
-  let random = Math.floor(Math.random() * obj.length);
-  while (isNameUsed(obj[random])) {
-    random = Math.floor(Math.random() * obj.length);
+  let randomf = Math.floor(Math.random() * firstnames.length);
+  let randoml = Math.floor(Math.random() * lastnames.length);
+  const name = [firstnames[randomf], lastnames[randoml]].join(" ");
+  while (isNameUsed(name)) {
+    let randomf = Math.floor(Math.random() * firstnames.length);
+    let randoml = Math.floor(Math.random() * lastnames.length);
+    name = [firstnames[randomf], lastnames[randoml]].join(" ");
   }
-  return obj[random];
+  return name;
 }
 
 app.get("/username", (req, res) => {
