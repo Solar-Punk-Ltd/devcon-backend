@@ -1,0 +1,62 @@
+{
+    "rooms": [
+        {
+            "url": "http://65.108.40.58:1633",
+            "gateway": "1501208bb1b036a04a0000f2a187b75e50f9d6f1437ab4bf4b2d3f909e6df245",
+            "topic": "Layer 2s::test"
+        },
+        {
+            "url": "http://65.108.40.58:1733",
+            "gateway": "f131b2193db30b952c7f294bee3f9a6f973338451779a1b699820baf6c0d59a6",
+            "topic": "Core protocol::test"
+        },
+        {
+            "url": "http://65.108.40.58:1833",
+            "gateway": "f1f397e438a368536d2a5b7fe9ef135749b16788938a689e88a566967e320c2a",
+            "topic": "Cypherpunk and privacy::test"
+        },
+        {
+            "url": "http://65.108.40.58:1933",
+            "gateway": "f217ec087c25f3b928fc4ab3ba2079fb29a76d8676fce67c6888bf5f7fdab9b1",
+            "topic": "Usability::test"
+        },
+        {
+            "url": "http://65.108.40.58:2033",
+            "gateway": "f277bbc80984c8ec56c40acb9d786cae052f45db30eb10e595a42881fd824740",
+            "topic": "Real World Ethereum::test"
+        },
+        {
+            "url": "http://65.108.40.58:2133",
+            "gateway": "f332d7635a1ee39321eca46037da87d616492c04f5a1e95e7c27ee94484b4e49",
+            "topic": "Applied Cryptography::test"
+        },
+        {
+            "url": "http://65.108.40.58:2233",
+            "gateway": "f36565aa1ba646caf891cc0af2f5ffd57b4a5c2ed00f27f9d20d4e7da4d7fbd1",
+            "topic": "Cryptoeconomics::test"
+        },
+        {
+            "url": "http://65.108.40.58:2333",
+            "gateway": "f3ad6c309c226b412c09999c9421538ed9eff53628ca54403a41129cca1a8265",
+            "topic": "Coordination::test"
+        },
+        {
+            "url": "http://65.108.40.58:2433",
+            "gateway": "f3c9645e8d35c28ea152138b3736fe20068c83ca483299c677864b37277c1239",
+            "topic": "Developer Experience::test"
+        },
+        {
+            "url": "http://65.108.40.58:2533",
+            "gateway": "f45f0993d516efb00892fa2eb2899e7b777097cedce4251f42b578a2bc6d949a",
+            "topic": "Security::test"
+        },
+        {
+            "url": "http://65.108.40.58:2633",
+            "gateway": "f4823e67517a513adfc27c37c5c7b5ea351835ba308a75434c2637b6398d2533",
+            "topic": "lobby::test"
+        },
+        {
+
+        }
+    ]
+}
