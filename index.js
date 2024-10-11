@@ -77,7 +77,7 @@ app.post("/username", (req, res) => {
 });
 
 app.get("/user-count", (req, res) => {
-  res.send("hi")
+  res.send(userCountState);
 });
 
 function fetchUserCounts() {
