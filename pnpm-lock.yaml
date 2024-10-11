@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@solarpunkltd/swarm-decentralized-chat':
-        specifier: ^0.0.16
-        version: 0.0.16
+        specifier: ^0.0.18
+        version: 0.0.18
       body-parser:
         specifier: ^1.20.3
         version: 1.20.3
@@ -124,11 +124,11 @@ packages:
   '@fairdatasociety/bmt-js@2.1.0':
     resolution: {integrity: sha512-Qm8jCQMijS1rwQIiDRJ4C7CdLXrUl0UVZet/McZ2fhNOk5J+Lhc0vqdF9i+7ZGwhGmTwILhNzcbNFJW1ejBhWw==}
 
-  '@solarpunkltd/gsoc@0.0.2':
-    resolution: {integrity: sha512-cAKd33PNPqqX3lIxn2ga1+vnzOthJmUQ/GaxQ2pJmBoJe9tPt3SH3iUhnb1BZWo3xuKfBqPUBy/HDigyG997CA==}
+  '@solarpunkltd/gsoc@0.0.3':
+    resolution: {integrity: sha512-4M9/cyO+7Adx4sluTeeM4Ro5V9YTy/YDs0SlZCfC/Jor1Z/y+J1zK+jRkDY6T5L91jOlZF30Cz///EuIUzQUVA==}
 
-  '@solarpunkltd/swarm-decentralized-chat@0.0.16':
-    resolution: {integrity: sha512-E33fA2WsTEmgNgoqwblsDtrOqTPYJhAWoO+tlpAbfVZ99I/q2Yl//NAJ3UvJKqVajG47z9UcroLIfbxOKoMSfw==}
+  '@solarpunkltd/swarm-decentralized-chat@0.0.18':
+    resolution: {integrity: sha512-tO/glQzPRBB/hKolbLqj8Lu1KnYfqavN3dOSDECvHWq77TvIA2L+sP/Zp0EVC5zWnS3VpOoKSViSdJyx4QzEew==}
 
   '@types/node@22.7.5':
     resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
@@ -1163,7 +1163,7 @@ snapshots:
 
   '@fairdatasociety/bmt-js@2.1.0': {}
 
-  '@solarpunkltd/gsoc@0.0.2':
+  '@solarpunkltd/gsoc@0.0.3':
     dependencies:
       '@fairdatasociety/bmt-js': 2.1.0
       axios: 1.7.7
@@ -1176,10 +1176,10 @@ snapshots:
       - debug
       - utf-8-validate
 
-  '@solarpunkltd/swarm-decentralized-chat@0.0.16':
+  '@solarpunkltd/swarm-decentralized-chat@0.0.18':
     dependencies:
       '@ethersphere/bee-js': 6.9.1
-      '@solarpunkltd/gsoc': 0.0.2
+      '@solarpunkltd/gsoc': 0.0.3
       ethers: 5.7.2
       pino: 9.4.0
       pino-pretty: 11.2.2

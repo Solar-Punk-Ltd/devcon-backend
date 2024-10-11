@@ -14,8 +14,8 @@ async function countUsers() {
 
             const chat = new SwarmChat({
                 url: room.url,
-                gatewy: room.gateway,
-                logLevel: "info"
+                gateway: room.gateway,
+                logLevel: "debug"
             });
             await chat.initUsers(room.topic);
     

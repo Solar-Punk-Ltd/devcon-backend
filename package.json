@@ -12,6 +12,6 @@
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "express": "^4.21.0",
-    "@solarpunkltd/swarm-decentralized-chat": "^0.0.18"
+    "@solarpunkltd/swarm-decentralized-chat": "^0.0.19"
   }
 }
