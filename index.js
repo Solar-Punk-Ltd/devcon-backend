@@ -70,6 +70,10 @@ app.post("/username", (req, res) => {
   }
 });
 
+app.get("/user-count", (req, res) => {
+
+});
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 
