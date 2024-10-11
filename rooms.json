@@ -54,9 +54,6 @@
             "url": "http://65.108.40.58:2633",
             "gateway": "f4823e67517a513adfc27c37c5c7b5ea351835ba308a75434c2637b6398d2533",
             "topic": "lobby::test"
-        },
-        {
-
         }
     ]
 }
