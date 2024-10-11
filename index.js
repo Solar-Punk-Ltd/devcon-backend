@@ -10,7 +10,7 @@ const app = express();
 
 const port = 4000;
 
-const USER_COUNT_FETCH_INTERVAL = 30 * 1000//15 * 60 * 1000;
+const USER_COUNT_FETCH_INTERVAL = 15 * 60 * 1000;
 
 const names = [];
 
