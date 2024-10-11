@@ -8,6 +8,8 @@ const app = express();
 
 const port = 4000;
 
+const USER_COUNT_FETCH_INTERVAL = 15 * 60 * 1000;
+
 const names = [];
 
 app.use(cors());
@@ -70,4 +72,17 @@ app.post("/username", (req, res) => {
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
+
+  setInterval(() => {
+    console.info("Fetching user counts for the rooms...");
+    const userCountWorker = new Worker(path.resolve(__dirname, './userCountWorker.js'),  {
+      workerData: {
+        exampleParam: "Hello World"
+      }
+    });
+
+    userCountWorker.onmessage((message) => {
+      console.log("Message: ", message)
+    })
+  }, USER_COUNT_FETCH_INTERVAL);
 });
