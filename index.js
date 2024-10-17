@@ -1,5 +1,7 @@
 const express = require("express");
 const fs = require('fs');
+const { Worker } = require('node:worker_threads');
+const path = require('path');
 
 var cors = require("cors");
 var bodyParser = require('body-parser');
@@ -7,6 +9,8 @@ var bodyParser = require('body-parser');
 const app = express();
 
 const port = 4000;
+
+const USER_COUNT_FETCH_INTERVAL = 15 * 60 * 1000;
 
 const names = [];
 
@@ -16,6 +20,10 @@ app.use(bodyParser.text());
 const obj = JSON.parse(fs.readFileSync('names.json', 'utf8'));
 const firstnames = obj.firstnames;
 const lastnames = obj.lastnames;
+
+const roomData = JSON.parse(fs.readFileSync('rooms.json', 'utf-8'));
+
+let userCountState = [];
 
 
 function saveName(name) {
@@ -68,6 +76,26 @@ app.post("/username", (req, res) => {
   }
 });
 
+app.get("/user-count", (req, res) => {
+  res.send(userCountState);
+});
+
+function fetchUserCounts() {
+  console.info("Fetching user counts for the rooms...");
+  const userCountWorker = new Worker(path.resolve(__dirname, './userCounterWorker.js'),  {
+    workerData: {
+      rooms: roomData.rooms
+    }
+  });
+
+  userCountWorker.on("message", (message) => {
+    userCountState = message;
+    console.info("User counts updated.");
+  });
+}
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
+
+  setInterval(() => fetchUserCounts(), USER_COUNT_FETCH_INTERVAL);
 });
