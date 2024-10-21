@@ -1,37 +1,57 @@
 const express = require("express");
-const fs = require('fs');
-const { Worker } = require('node:worker_threads');
-const path = require('path');
+const fs = require("fs");
+const { Worker } = require("node:worker_threads");
+const path = require("path");
+const crypto = require("crypto");
 
 var cors = require("cors");
-var bodyParser = require('body-parser');
 
 const app = express();
 
-const port = 4000;
+app.use(cors());
+app.use(express.json());
 
+// TODO: remove logger middleware
+app.use((req, res, next) => {
+  req.time = new Date(Date.now()).toString();
+  console.log(req.method, req.hostname, req.path, req.time);
+  console.log(req.body);
+  console.log(users);
+  next();
+});
+
+const PORT = 4000;
 const USER_COUNT_FETCH_INTERVAL = 15 * 60 * 1000;
 
-const names = [];
+//TODO: persist this
+//TODO: check lower case names?
+const users = new Map();
 
-app.use(cors());
-app.use(bodyParser.text());
+//TODO: these are random codes, we need to add the real ones
+//make it a sealed secret?
+const giftcodes = JSON.parse(fs.readFileSync("giftcodes.json", "utf8")); // random strings for testing
 
-const obj = JSON.parse(fs.readFileSync('names.json', 'utf8'));
-const firstnames = obj.firstnames;
-const lastnames = obj.lastnames;
+const namelist = JSON.parse(fs.readFileSync("names.json", "utf8"));
+const firstnames = namelist.firstnames;
+const lastnames = namelist.lastnames;
 
-const roomData = JSON.parse(fs.readFileSync('rooms.json', 'utf-8'));
+const roomData = JSON.parse(fs.readFileSync("rooms.json", "utf-8"));
 
 let userCountState = [];
 
+function saveName(name, publicKey) {
+  users.set(name, { key: publicKey, points: 0 });
+}
 
-function saveName(name) {
-  names.push(name);
+function saveCode(name, code) {
+  users.set(name, {
+    ...users.get(name),
+    code: code,
+  });
 }
 
 function isNameUsed(name) {
-  return names.includes(name);
+  return users.has(name);
 }
 
 function pickRandomUserName() {
@@ -62,18 +82,68 @@ app.get("/username/:name", (req, res) => {
     res.statusCode = 200;
     res.send("name can be used");
   }
-  console.log(names);
 });
 
 app.post("/username", (req, res) => {
-  if (isNameUsed(req.body)) {
+  if (isNameUsed(req.body.name)) {
     res.statusCode = 409;
     res.send("name is already in use");
   } else {
-    saveName(req.body); 
+    saveName(req.body.name, req.body.key);
     res.statusCode = 200;
     res.send("user created");
   }
+});
+
+app.post("/redeem", (req, res) => {
+  if (giftcodes.length > 0) {
+    if (users.has(req.body.name) && users.get(req.body.name).points >= 10) {
+      const savedCode = users.get(req.body.name).code;
+      if (savedCode !== undefined) {
+        res.statusCode = 200;
+        res.send(savedCode);
+        return;
+      }
+      const code = giftcodes.pop();
+      saveCode(req.body.name, code);
+      res.statusCode = 200;
+      res.send(code);
+    } else {
+      res.statusCode = 403;
+      res.send("not enough points");
+    }
+  } else {
+    res.statusCode = 404;
+    res.send("no more codes");
+  }
+});
+
+app.get("/points/:name", (req, res) => {
+  if (users.has(req.params.name))
+    res.send(users.get(req.params.name).points.toString());
+  else res.send("0");
+});
+
+//TODO: remove after testing
+app.get("/addpoints/:name", (req, res) => {
+  if (users.has(req.params.name)) {
+    users.set(req.params.name, {
+      ...users.get(req.params.name),
+      points: users.get(req.params.name).points + 1,
+    });
+    res.send(users.get(req.params.name).points.toString());
+  }
+});
+
+app.get("/nonce/:name", (req, res) => {
+  if (users.has(req.params.name)) {
+    const nonce = crypto.randomBytes(16).toString("hex");
+    users.set(req.params.name, {
+      ...users.get(req.params.name),
+      nonce: nonce,
+    });
+    res.send(nonce);
+  } else res.send("0");
 });
 
 app.get("/user-count", (req, res) => {
@@ -82,11 +152,14 @@ app.get("/user-count", (req, res) => {
 
 function fetchUserCounts() {
   console.info("Fetching user counts for the rooms...");
-  const userCountWorker = new Worker(path.resolve(__dirname, './userCounterWorker.js'),  {
-    workerData: {
-      rooms: roomData.rooms
+  const userCountWorker = new Worker(
+    path.resolve(__dirname, "./userCounterWorker.js"),
+    {
+      workerData: {
+        rooms: roomData.rooms,
+      },
     }
-  });
+  );
 
   userCountWorker.on("message", (message) => {
     userCountState = message;
@@ -94,8 +167,8 @@ function fetchUserCounts() {
   });
 }
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`App listening on port ${PORT}`);
 
   setInterval(() => fetchUserCounts(), USER_COUNT_FETCH_INTERVAL);
 });
