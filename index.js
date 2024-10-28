@@ -110,8 +110,8 @@ app.post("/redeem", (req, res) => {
         req.body.sig
       );
       if (
-        signerAddr !== users.get(req.body.username).key &&
-        req.body.message === users.get(req.body.username).nonce
+        signerAddr !== users.get(req.body.username).key ||
+        req.body.message !== users.get(req.body.username).nonce
       ) {
         res.statusCode = 403;
         res.send("wrong signature");
