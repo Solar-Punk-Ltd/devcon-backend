@@ -99,18 +99,14 @@ app.post("/username", (req, res) => {
 app.post("/redeem", (req, res) => {
   if (giftcodes.length > 0) {
     if (users.has(req.body.username) && users.get(req.body.username).points >= 10) {
-      const savedCode = users.get(req.body.username).code;
-      if (savedCode !== undefined) {
-        res.statusCode = 200;
-        res.send(savedCode);
-        return;
-      }
       const signerAddr = ethers.verifyMessage(
         req.body.message,
         req.body.sig
       );
+      const savedAddress = ethers.computeAddress(users.get(req.body.username).key)
+      console.log(signerAddr, savedAddress);
       if (
-        signerAddr !== users.get(req.body.username).key ||
+        signerAddr !== savedAddress ||
         req.body.message !== users.get(req.body.username).nonce
       ) {
         res.statusCode = 403;
