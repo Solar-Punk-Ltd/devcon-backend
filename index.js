@@ -3,6 +3,7 @@ const fs = require("fs");
 const { Worker } = require("node:worker_threads");
 const path = require("path");
 const crypto = require("crypto");
+const ethers = require("ethers");
 
 var cors = require("cors");
 
@@ -85,11 +86,11 @@ app.get("/username/:name", (req, res) => {
 });
 
 app.post("/username", (req, res) => {
-  if (isNameUsed(req.body.name)) {
+  if (isNameUsed(req.body.username)) {
     res.statusCode = 409;
     res.send("name is already in use");
   } else {
-    saveName(req.body.name, req.body.key);
+    saveName(req.body.username, req.body.key);
     res.statusCode = 200;
     res.send("user created");
   }
@@ -97,15 +98,23 @@ app.post("/username", (req, res) => {
 
 app.post("/redeem", (req, res) => {
   if (giftcodes.length > 0) {
-    if (users.has(req.body.name) && users.get(req.body.name).points >= 10) {
-      const savedCode = users.get(req.body.name).code;
-      if (savedCode !== undefined) {
-        res.statusCode = 200;
-        res.send(savedCode);
+    if (users.has(req.body.username) && users.get(req.body.username).points >= 10) {
+      const signerAddr = ethers.verifyMessage(
+        req.body.message,
+        req.body.sig
+      );
+      const savedAddress = ethers.computeAddress(users.get(req.body.username).key)
+      console.log(signerAddr, savedAddress);
+      if (
+        signerAddr !== savedAddress ||
+        req.body.message !== users.get(req.body.username).nonce
+      ) {
+        res.statusCode = 403;
+        res.send("wrong signature");
         return;
       }
       const code = giftcodes.pop();
-      saveCode(req.body.name, code);
+      saveCode(req.body.username, code);
       res.statusCode = 200;
       res.send(code);
     } else {
