@@ -133,8 +133,13 @@ app.get("/points/:name", (req, res) => {
   else res.send("0");
 });
 
-//TODO: remove after testing
-app.get("/addpoints/:name", (req, res) => {
+app.post("/addpoints/:name", (req, res) => {
+  const token = req.headers["authorization"];
+  if (token !== "Bearer " + process.env.API_KEY) {
+    res.statusCode = 403;
+    res.send("forbidden");
+    return;
+  }
   if (users.has(req.params.name)) {
     users.set(req.params.name, {
       ...users.get(req.params.name),
