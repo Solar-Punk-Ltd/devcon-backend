@@ -21,6 +21,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const env = process.env?.ENV === "test" ? "test" : "prod";
 const usersDB = env === "test" ? "users-test" : "users";
+const codesDB = env === "test" ? "codes-test" : "codes";
 
 const app = express();
 
@@ -117,7 +118,7 @@ async function genNonce(name) {
 async function getAndRedeemCode(username) {
   //1. get one unused code refence
   let querySnapshot = await db
-    .collection("codes")
+    .collection(codesDB)
     .where("user", "==", "")
     .limit(1)
     .get();
@@ -125,7 +126,7 @@ async function getAndRedeemCode(username) {
   if (!codeDocid) {
     return "no code available";
   }
-  const codeRef = db.collection("codes").doc(codeDocid);
+  const codeRef = db.collection(codesDB).doc(codeDocid);
   let docRef = db.collection(usersDB).doc(username);
   const doc = await docRef.get();
   const data = doc.data();
