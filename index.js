@@ -169,11 +169,6 @@ app.post("/redeem", async (req, res) => {
       const savedAddress = ethers.computeAddress(
         data.key
       );
-    } catch (e) {
-      res.statusCode = 403;
-      res.send("wrong signature");
-      return;
-    }
       if (
         signerAddr !== savedAddress ||
         req.body.message !== data.nonce
@@ -183,9 +178,14 @@ app.post("/redeem", async (req, res) => {
         return;
       }
       const code = giftcodes.pop();
-      saveCode(req.body.username, code);
+      await saveCode(req.body.username, code);
       res.statusCode = 200;
       res.send(code);
+    } catch (e) {
+      res.statusCode = 403;
+      res.send("wrong signature");
+      return;
+    }
     } else {
       res.statusCode = 403;
       res.send("not enough points");
