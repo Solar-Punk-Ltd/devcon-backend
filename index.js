@@ -10,6 +10,7 @@ const firebase = require("firebase");
 // Required for side-effects
 require("firebase/firestore");
 var cors = require("cors");
+const { get } = require("http");
 
 const firebaseConfig = JSON.parse(fs.readFileSync("config.json", "utf8"));
 
@@ -18,7 +19,7 @@ firebase.initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 const db = firebase.firestore();
-const env = process.env?.ENV === "test" ? "test" : "prod"
+const env = process.env?.ENV === "test" ? "test" : "prod";
 const usersDB = env === "test" ? "users-test" : "users";
 
 const app = express();
@@ -36,7 +37,6 @@ app.use((req, res, next) => {
 
 const PORT = 4000;
 const USER_COUNT_FETCH_INTERVAL = 15 * 60 * 1000;
-
 
 const giftcodes = JSON.parse(fs.readFileSync("giftcodes.json", "utf8")); // random strings for testing
 
@@ -63,10 +63,10 @@ async function saveCode(name, code) {
   let docRef = db.collection(usersDB).doc(name);
   const doc = await docRef.get();
   if (doc.exists) {
-  await docRef.update({
-    code: code,
-  });
-}
+    await docRef.update({
+      code: code,
+    });
+  }
 }
 
 async function isNameUsed(name) {
@@ -112,6 +112,45 @@ async function genNonce(name) {
     return nonce;
   }
   return "";
+}
+
+async function getAndRedeemCode(username) {
+  //1. get one unused code refence
+  let querySnapshot = await db
+    .collection("codes")
+    .where("user", "==", "")
+    .limit(1)
+    .get();
+  let codeDocid = querySnapshot.docs[0]?.id;
+  if (!codeDocid) {
+    return "no code available";
+  }
+  const codeRef = db.collection("codes").doc(codeDocid);
+  let docRef = db.collection(usersDB).doc(username);
+  const doc = await docRef.get();
+  const data = doc.data();
+  if (doc.exists && data.code !== "") {
+    return "already redeemed";
+  }
+  try {
+    await db.runTransaction(async (t) => {
+      const doc = await t.get(codeRef);
+      // 2. check again if the code is still unused
+      const code = doc.data().code;
+      const user = doc.data().user;
+      if (user === "") {
+        // 3. update the code with the username
+        t.update(codeRef, { user: username });
+      } else {
+        console.log("Transaction failure: code already redeemed");
+        throw "failure";
+      }
+    });
+  } catch (e) {
+    console.log("Transaction failure:", e);
+    return "failure";
+  }
+  return querySnapshot.docs[0].data().code;
 }
 
 async function pickRandomUserName() {
@@ -170,32 +209,27 @@ app.post("/redeem", async (req, res) => {
     res.send("already redeemed");
     return;
   } else if (giftcodes.length > 0) {
-    if (
-      doc.exists &&
-      data.points >= 10
-    ) {
+    if (doc.exists && data.points >= 10) {
       try {
-      const signerAddr = ethers.verifyMessage(req.body.message, req.body.sig);
-      const savedAddress = ethers.computeAddress(
-        data.key
-      );
-      if (
-        signerAddr !== savedAddress ||
-        req.body.message !== data.nonce
-      ) {
+        const signerAddr = ethers.verifyMessage(req.body.message, req.body.sig);
+        const savedAddress = ethers.computeAddress(data.key);
+        if (signerAddr !== savedAddress || req.body.message !== data.nonce) {
+          // res.statusCode = 403;
+          // res.send("wrong signature");
+          // return;
+        }
+        let code = await getAndRedeemCode(req.body.username);
+        while (code === "failure") {
+          code = await getAndRedeemCode(req.body.username);
+        }
+        await saveCode(req.body.username, code);
+        res.statusCode = 200;
+        res.send(code);
+      } catch (e) {
         res.statusCode = 403;
         res.send("wrong signature");
         return;
       }
-      const code = giftcodes.pop();
-      await saveCode(req.body.username, code);
-      res.statusCode = 200;
-      res.send(code);
-    } catch (e) {
-      res.statusCode = 403;
-      res.send("wrong signature");
-      return;
-    }
     } else {
       res.statusCode = 403;
       res.send("not enough points");
@@ -232,6 +266,15 @@ app.get("/nonce/:name", async (req, res) => {
 app.get("/user-count", (req, res) => {
   res.send(userCountState);
 });
+
+// app.get("/code/:username", async (req, res) => {
+//   let a = await getAndRedeemCode(req.params.username);
+//   while (a === "failure") {
+//     a = await getAndRedeemCode(req.params.username);
+//   }
+//   saveCode(req.params.username, a);
+//   res.send(a);
+// });
 
 function fetchUserCounts() {
   console.info("Fetching user counts for the rooms...");
