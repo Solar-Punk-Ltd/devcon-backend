@@ -3,6 +3,7 @@ FROM node:slim
 
 ARG ROOM_JSON
 ARG GIFTCODE_JSON
+ARG CONFIG_JSON
 
 # Setting up the work directory
 WORKDIR /devcon
@@ -13,6 +14,7 @@ COPY . .
 # Get rooms.json from args
 RUN echo "$ROOM_JSON" >> rooms.json
 RUN if [ -n "$GIFTCODE_JSON" ] ; then echo "$GIFTCODE_JSON" > giftcodes.json ; fi
+RUN if [ -n "$CONFIG_JSON" ] ; then echo "$CONFIG_JSON" > config.json ; fi
 
 # Installing dependencies
 RUN npm install
