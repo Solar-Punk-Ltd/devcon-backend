@@ -10,7 +10,6 @@ const firebase = require("firebase");
 // Required for side-effects
 require("firebase/firestore");
 var cors = require("cors");
-const { get } = require("http");
 
 const firebaseConfig = JSON.parse(fs.readFileSync("config.json", "utf8"));
 
@@ -38,8 +37,6 @@ app.use((req, res, next) => {
 
 const PORT = 4000;
 const USER_COUNT_FETCH_INTERVAL = 15 * 60 * 1000;
-
-const giftcodes = JSON.parse(fs.readFileSync("giftcodes.json", "utf8")); // random strings for testing
 
 const namelist = JSON.parse(fs.readFileSync("names.json", "utf8"));
 const firstnames = namelist.firstnames;
@@ -209,7 +206,7 @@ app.post("/redeem", async (req, res) => {
     res.statusCode = 409;
     res.send("already redeemed");
     return;
-  } else if (giftcodes.length > 0) {
+  } else {
     if (doc.exists && data.points >= 10) {
       try {
         const signerAddr = ethers.verifyMessage(req.body.message, req.body.sig);
@@ -224,6 +221,11 @@ app.post("/redeem", async (req, res) => {
           code = await getAndRedeemCode(req.body.username);
         }
         await saveCode(req.body.username, code);
+        if (code === "no code available") {
+          res.statusCode = 404;
+          res.send("There are no more codes available");
+          return;
+        }
         res.statusCode = 200;
         res.send(code);
       } catch (e) {
@@ -235,9 +237,6 @@ app.post("/redeem", async (req, res) => {
       res.statusCode = 403;
       res.send("not enough points");
     }
-  } else {
-    res.statusCode = 404;
-    res.send("no more codes available");
   }
 });
 
