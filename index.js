@@ -152,7 +152,7 @@ app.post("/username", async (req, res) => {
 });
 
 app.post("/redeem", async (req, res) => {
-  let docRef = db.collection(usersDB).doc(name);
+  let docRef = db.collection(usersDB).doc(req.body.username);
   const doc = await docRef.get();
   const data = doc.data();
   if (doc.exists && data.code !== "") {
@@ -164,11 +164,16 @@ app.post("/redeem", async (req, res) => {
       doc.exists &&
       data.points >= 10
     ) {
+      try {
       const signerAddr = ethers.verifyMessage(req.body.message, req.body.sig);
       const savedAddress = ethers.computeAddress(
         data.key
       );
-      console.log(signerAddr, savedAddress);
+    } catch (e) {
+      res.statusCode = 403;
+      res.send("wrong signature");
+      return;
+    }
       if (
         signerAddr !== savedAddress ||
         req.body.message !== data.nonce
