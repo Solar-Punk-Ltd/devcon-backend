@@ -18,7 +18,8 @@ firebase.initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 const db = firebase.firestore();
-const usersDB = process.env.USERS_DB || "users-test";
+const env = process.env?.ENV === "test" ? "test" : "prod"
+const usersDB = env === "test" ? "users-test" : "users";
 
 const app = express();
 
@@ -152,6 +153,15 @@ app.post("/username", async (req, res) => {
 });
 
 app.post("/redeem", async (req, res) => {
+  let config = db.collection("config").doc(env);
+  const configdoc = await config.get();
+  const configdata = configdoc.data();
+  const restricted = configdata?.restricted;
+  if (restricted) {
+    res.statusCode = 404;
+    res.send(restricted);
+    return;
+  }
   let docRef = db.collection(usersDB).doc(req.body.username);
   const doc = await docRef.get();
   const data = doc.data();
@@ -192,7 +202,7 @@ app.post("/redeem", async (req, res) => {
     }
   } else {
     res.statusCode = 404;
-    res.send("no more codes");
+    res.send("no more codes available");
   }
 });
 
