@@ -156,7 +156,7 @@ app.post("/redeem", async (req, res) => {
   const doc = await docRef.get();
   const data = doc.data();
   if (doc.exists && data.code !== "") {
-    res.statusCode = 200;
+    res.statusCode = 409;
     res.send("already redeemed");
     return;
   } else if (giftcodes.length > 0) {
