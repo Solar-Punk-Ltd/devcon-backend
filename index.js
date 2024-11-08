@@ -126,7 +126,7 @@ async function pickRandomUserName() {
 }
 
 app.get("/username", async (req, res) => {
-  let n = pickRandomUserName();
+  let n = await pickRandomUserName();
   res.send(n);
 });
 
