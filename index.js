@@ -223,6 +223,7 @@ app.post("/redeem", async (req, res) => {
         if (code === "already redeemed") {
           res.statusCode = 409;
           res.send("already redeemed");
+          return;
         }
         await saveCode(req.body.username, code);
         if (code === "no code available") {
