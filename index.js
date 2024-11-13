@@ -220,6 +220,10 @@ app.post("/redeem", async (req, res) => {
         while (code === "failure") {
           code = await getAndRedeemCode(req.body.username);
         }
+        if (code === "already redeemed") {
+          res.statusCode = 409;
+          res.send("already redeemed");
+        }
         await saveCode(req.body.username, code);
         if (code === "no code available") {
           res.statusCode = 404;
