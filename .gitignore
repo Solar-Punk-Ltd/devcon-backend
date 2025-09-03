@@ -121,6 +121,7 @@ dist
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
+.vscode
 
 # yarn v2
 .yarn/cache
@@ -129,5 +130,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Do not upload rooms.json
+# Do not upload
 rooms.json
+config.json

@@ -1,7 +1,5 @@
 const express = require("express");
 const fs = require("fs");
-const { Worker } = require("node:worker_threads");
-const path = require("path");
 const crypto = require("crypto");
 const ethers = require("ethers");
 
@@ -11,16 +9,22 @@ const firebase = require("firebase");
 require("firebase/firestore");
 var cors = require("cors");
 
-const firebaseConfig = JSON.parse(fs.readFileSync("config.json", "utf8"));
+const PORT = 4000;
+const TEST_ENV = "test";
+const PROD_ENV = "prod";
+const env = process.env?.ENV === TEST_ENV ? TEST_ENV : PROD_ENV;
+const usersDB = env === TEST_ENV ? "users-test" : "users";
+const codesDB = env === TEST_ENV ? "codes-test" : "codes";
+const NAMES_FILE = "names.json";
+const CONFIG_FILE = "config.json";
+
+const firebaseConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 const db = firebase.firestore();
-const env = process.env?.ENV === "test" ? "test" : "prod";
-const usersDB = env === "test" ? "users-test" : "users";
-const codesDB = env === "test" ? "codes-test" : "codes";
 
 const app = express();
 
@@ -35,14 +39,9 @@ app.use((req, res, next) => {
   next();
 });
 
-const PORT = 4000;
-const USER_COUNT_FETCH_INTERVAL = 15 * 60 * 1000;
-
-const namelist = JSON.parse(fs.readFileSync("names.json", "utf8"));
+const namelist = JSON.parse(fs.readFileSync(NAMES_FILE, "utf8"));
 const firstnames = namelist.firstnames;
 const lastnames = namelist.lastnames;
-
-const roomData = JSON.parse(fs.readFileSync("rooms.json", "utf-8"));
 
 let userCountState = [];
 
@@ -114,11 +113,7 @@ async function genNonce(name) {
 
 async function getAndRedeemCode(username) {
   //1. get one unused code refence
-  let querySnapshot = await db
-    .collection(codesDB)
-    .where("user", "==", "")
-    .limit(1)
-    .get();
+  let querySnapshot = await db.collection(codesDB).where("user", "==", "").limit(1).get();
   let codeDocid = querySnapshot.docs[0]?.id;
   if (!codeDocid) {
     return "no code available";
@@ -272,34 +267,6 @@ app.get("/user-count", (req, res) => {
   res.send(userCountState);
 });
 
-// app.get("/code/:username", async (req, res) => {
-//   let a = await getAndRedeemCode(req.params.username);
-//   while (a === "failure") {
-//     a = await getAndRedeemCode(req.params.username);
-//   }
-//   saveCode(req.params.username, a);
-//   res.send(a);
-// });
-
-function fetchUserCounts() {
-  console.info("Fetching user counts for the rooms...");
-  const userCountWorker = new Worker(
-    path.resolve(__dirname, "./userCounterWorker.js"),
-    {
-      workerData: {
-        rooms: roomData.rooms,
-      },
-    }
-  );
-
-  userCountWorker.on("message", (message) => {
-    userCountState = message;
-    console.info("User counts updated.");
-  });
-}
-
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
-
-  setInterval(() => fetchUserCounts(), USER_COUNT_FETCH_INTERVAL);
 });
